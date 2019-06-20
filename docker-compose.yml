@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  scraper:
+    build:
+      context: ./scraper
+    volumes:
+      - ./scraper/src/:/opt/scraper/src/
+    environment:
+      PYTHONPATH: /opt/scraper/src
+      PRICE_MAX: 5000
+    networks:
+      - redis-net
+    depends_on:
+      - notifier
+      - redis
+
+  notifier:
+    build:
+      context: ./notifier
+    volumes:
+      - ./notifier/src/:/opt/notifier/src/
+    networks:
+      - redis-net
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:5.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    networks:
+      - redis-net
+    volumes:
+      - redis-data:/data
+
+networks:
+  redis-net:
+
+volumes:
+  redis-data:
